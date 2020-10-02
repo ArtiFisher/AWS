@@ -1,1 +1,0 @@
-aws s3 cp s3://artsiom-rybakou-task2 "/Users/artsiom_rybakou/Documents/Projects/AWS training/task2-download" --recursive
