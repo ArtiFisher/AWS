@@ -1,0 +1,1 @@
+aws s3 sync "/Users/artsiom_rybakou/Documents/Projects/AWS training/Task2" s3://artsiom-rybakou-task2
