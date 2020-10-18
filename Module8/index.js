@@ -1,13 +1,19 @@
 const http = require("http");
 const path = require("path");
 const fs = require("fs");
-
+const AWS = require('aws-sdk');
 const express = require("express");
+
+require('dotenv').config()
 
 const app = express();
 const httpServer = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
+
+AWS.config.update({region: 'eu-west-1'});
+
+const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
 httpServer.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
@@ -34,17 +40,21 @@ app.post(
   upload.single("file" /* name attribute of <file> element in your form */),
   (req, res) => {
     const tempPath = req.file.path;
-    const targetPath = path.join(__dirname, `./images/${Date.now()}.png`);
-
     if (path.extname(req.file.originalname).toLowerCase() === ".png") {
-      fs.rename(tempPath, targetPath, err => {
-        if (err) return handleError(err, res);
-
-        res
-          .status(200)
-          .contentType("text/plain")
-          .end("File uploaded!");
-      });
+        s3.upload({
+            Bucket: process.env.BUCKET_NAME,
+            Key: `${Date.now()}.png`, // File name you want to save as in S3
+            Body: fs.readFileSync(tempPath)
+        }, function(err, data) {
+            if (err) {
+                throw err;
+            }
+            console.log(`File uploaded successfully. ${data.Location}`);
+            res
+                .status(200)
+                .contentType("text/plain")
+                .end("File uploaded!");
+        });
     } else {
       fs.unlink(tempPath, err => {
         if (err) return handleError(err, res);
