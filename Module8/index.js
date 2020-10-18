@@ -37,13 +37,13 @@ const upload = multer({
 
 app.post(
   "/upload",
-  upload.single("file" /* name attribute of <file> element in your form */),
+  upload.single("file"),
   (req, res) => {
     const tempPath = req.file.path;
     if (path.extname(req.file.originalname).toLowerCase() === ".png") {
         s3.upload({
             Bucket: process.env.BUCKET_NAME,
-            Key: `${Date.now()}.png`, // File name you want to save as in S3
+            Key: `${Date.now()}.png`,
             Body: fs.readFileSync(tempPath)
         }, function(err, data) {
             if (err) {
@@ -69,11 +69,14 @@ app.post(
 );
 
 app.get("/image", (req, res) => {
-    fs.readdir(path.join(__dirname, "./images"), function (err, files) {
-        if (err) {
-            return console.log('Unable to scan directory: ' + err);
-        }
-        const images = files.filter(file => file.endsWith('.png'))
-        res.sendFile(path.join(__dirname, `./images/${images[Math.floor(Math.random() * images.length)]}`));
-    });
+    s3.getObject({
+        Bucket: process.env.BUCKET_NAME,
+        Key: `1603012002315.png`
+    }, function(err, data) {
+        if (err) console.log(err, err.stack);
+
+        fs.writeFileSync(path.join(__dirname, `./images/1603012002315.png`), data.Body);
+        res.sendFile(path.join(__dirname, `./images/1603012002315.png`));
+
+      });
 });
