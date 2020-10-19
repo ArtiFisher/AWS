@@ -49,7 +49,7 @@ app.post(
     if (path.extname(req.file.originalname).toLowerCase() === ".png") {
         s3.upload({
             Bucket: process.env.BUCKET_NAME,
-            Key: `${Date.now()}.png`,
+            Key: req.file.originalname,
             Body: fs.readFileSync(tempPath)
         }, function(err, data) {
             if (err) {
@@ -84,19 +84,28 @@ app.get("/metadata", (req, res) => {
       res
         .status(200)
         .contentType("text/plain")
-        .end(data.toString());
+        .end(JSON.stringify(data));
     })
 });
 
 app.get("/image", (req, res) => {
-    s3.getObject({
-        Bucket: process.env.BUCKET_NAME,
-        Key: `1603012002315.png`
-    }, function(err, data) {
-        if (err) console.log(err, err.stack);
+    sequelize
+    .query(`SELECT * FROM images`, { logging: console.log, type: QueryTypes.SELECT })
+    .then(metadata => {
+      if(metadata.length === 0) res
+        .status(200)
+        .contentType("text/plain")
+        .end("No images");
+      const chosenImage = metadata[Math.floor(Math.random() * metadata.length)];
+      console.dir(metadata, chosenImage)
+      s3.getObject({
+          Bucket: process.env.BUCKET_NAME,
+          Key: chosenImage.name
+      }, function(err, data) {
+          if (err) console.log(err, err.stack);
 
-        fs.writeFileSync(path.join(__dirname, `./images/1603012002315.png`), data.Body);
-        res.sendFile(path.join(__dirname, `./images/1603012002315.png`));
-
-      });
+          fs.writeFileSync(path.join(__dirname, `images/temp`), data.Body);
+          res.download(path.join(__dirname, `images/temp`), chosenImage.name);
+        });
+    })
 });
