@@ -23,6 +23,9 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_LOGIN, proce
 const app = express();
 const httpServer = http.createServer(app);
 
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
 const PORT = process.env.PORT || 3000;
 
 httpServer.listen(PORT, () => {
@@ -63,7 +66,7 @@ app.post(
                 throw err;
             }
             const currentDate = new Date().toLocaleString();
-            sequelize.query(`INSERT INTO images (name, upload_date) VALUES ("${req.file.originalname}", "${currentDate}");`,
+            sequelize.query(`INSERT INTO images (name, uploaded) VALUES ("${req.file.originalname}", "${currentDate}");`,
             { logging: console.log, type: QueryTypes.INSERT })
             sns.publish({
               Message: 'New image has been uploaded!',
@@ -146,16 +149,15 @@ app.get("/image", (req, res) => {
         .status(200)
         .contentType("text/plain")
         .end("No images");
-      const chosenImage = metadata[Math.floor(Math.random() * metadata.length)];
-      console.dir(metadata, chosenImage)
+      const { name, uploaded } = metadata[Math.floor(Math.random() * metadata.length)];
       s3.getObject({
           Bucket: process.env.BUCKET_NAME,
-          Key: chosenImage.name
+          Key: name
       }, function(err, data) {
           if (err) console.log(err, err.stack);
-
-          fs.writeFileSync(path.join(__dirname, `images/temp`), data.Body);
-          res.download(path.join(__dirname, `images/temp`), chosenImage.name);
+          fs.writeFileSync(path.join(__dirname, `public/temp.png`), data.Body);
+          res.sendFile(path.join(__dirname, `image.html`));
+          res.render('image', { name, uploaded })
         });
     })
 });

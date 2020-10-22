@@ -13,7 +13,7 @@ sequelize.query(`DROP TABLE images`, { logging: console.log })
 sequelize.query(`CREATE TABLE images (
       id MEDIUMINT NOT NULL AUTO_INCREMENT,
       name CHAR(30) NOT NULL,
-      upload_date CHAR(30) NOT NULL,
+      uploaded CHAR(30) NOT NULL,
       PRIMARY KEY (id)
   );`, { logging: console.log })
 
@@ -34,7 +34,7 @@ sequelize
 // //   connection.query(`CREATE TABLE images (
 // //     id MEDIUMINT NOT NULL AUTO_INCREMENT,
 // //     name CHAR(30) NOT NULL,
-// //     upload_date CHAR(30) NOT NULL,
+// //     uploaded CHAR(30) NOT NULL,
 // //     PRIMARY KEY (id)
 // // );`)
 
