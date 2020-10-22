@@ -12,16 +12,16 @@ sequelize.query(`DROP TABLE images`, { logging: console.log })
 
 sequelize.query(`CREATE TABLE images (
       id MEDIUMINT NOT NULL AUTO_INCREMENT,
-      name CHAR(30) NOT NULL,
-      uploaded CHAR(30) NOT NULL,
+      name CHAR(200) NOT NULL,
+      uploaded CHAR(200) NOT NULL,
       PRIMARY KEY (id)
   );`, { logging: console.log })
 
-sequelize
-.query(`SELECT * FROM images`, { logging: console.log, type: QueryTypes.SELECT })
-.then(data => {
-  console.log(data)
-})
+// sequelize
+// .query(`SELECT * FROM images`, { logging: console.log, type: QueryTypes.SELECT })
+// .then(data => {
+//   console.log(data)
+// })
 
 // connection.connect(function(err) {
 //   if (err) {
@@ -33,8 +33,8 @@ sequelize
 
 // //   connection.query(`CREATE TABLE images (
 // //     id MEDIUMINT NOT NULL AUTO_INCREMENT,
-// //     name CHAR(30) NOT NULL,
-// //     uploaded CHAR(30) NOT NULL,
+// //     name CHAR(200) NOT NULL,
+// //     uploaded CHAR(200) NOT NULL,
 // //     PRIMARY KEY (id)
 // // );`)
 
