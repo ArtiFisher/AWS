@@ -14,6 +14,7 @@ AWS.config.update({region: 'eu-west-1'});
 
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 const sns = new AWS.SNS({apiVersion: '2010-03-31'});
+const lambda = new AWS.Lambda({apiVersion: '2015-03-31'});
 
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_LOGIN, process.env.DB_PASSWORD, {
   host     : process.env.DB_HOST,
@@ -30,6 +31,21 @@ const PORT = process.env.PORT || 3000;
 
 httpServer.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
+});
+
+s3.waitFor('bucketNotExists', { Bucket: process.env.BUCKET_NAME }, function(err, data) {
+  if (err) console.log(err, err.stack);
+  else {
+    lambda.invoke({
+      FunctionName: 'bucket-creator',
+      InvocationType: 'RequestResponse',
+      LogType: 'Tail',
+      Payload: JSON.stringify({ bucketName: process.env.BUCKET_NAME })
+    }, function(err, data) {
+      err && console.log(err);
+      data && console.log(data);
+    })
+  }
 });
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -126,7 +142,7 @@ app.post("/unsubscribed", (req, res) => {
           }
       });
     }
-})
+  })
 });
 
 app.get("/metadata", (req, res) => {
@@ -157,7 +173,7 @@ app.get("/image", (req, res) => {
           if (err) console.log(err, err.stack);
           fs.writeFileSync(path.join(__dirname, `public/temp.png`), data.Body);
           res.sendFile(path.join(__dirname, `image.html`));
-          res.render('image', { name, uploaded })
+          res.render('image', { name, uploaded });
         });
     })
 });
